@@ -1,5 +1,6 @@
 import sqlite3
 import os
+import sys
 
 # Define the directory for storing databases
 DATABASE_DIR = os.path.expanduser("~/databases")
@@ -15,10 +16,13 @@ def create_customer_db(customer_id):
     db_path = os.path.join(DATABASE_DIR, f"{customer_id}.db")
     
     if os.path.exists(db_path):
-        print(f"Database for customer '{customer_id}' already exists.")
-        return
+        # If the database exists, ask the user if they want to continue
+        response = input(f"Database for customer '{customer_id}' already exists. Do you want to overwrite it? (yes/no): ").strip().lower()
+        if response not in ('yes', 'y'):
+            print("Operation cancelled.")
+            return
 
-    # Create the database and the measurements table
+    # Create or overwrite the database and the measurements table
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     cursor.execute('''
@@ -38,7 +42,10 @@ def create_customer_db(customer_id):
     conn.close()
     print(f"Database for customer '{customer_id}' created successfully at {db_path}.")
 
-# Example: Create databases for customer1 and customer2
 if __name__ == "__main__":
-    create_customer_db("customer1")
-    create_customer_db("customer2")
+    if len(sys.argv) != 2:
+        print("Usage: python3 create_customer_db.py <customer_id>")
+        sys.exit(1)
+    
+    customer_id = sys.argv[1]
+    create_customer_db(customer_id)
